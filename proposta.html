@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Proposta de serviços</title>
+<style>
+:root{--bg:#f6f2ea;--fg:#1f1b16;--muted:#6b6258;--card:#fff;--line:#e4dccd;--accent:#b8862b;--accent-fg:#fff;--dark:#1f1b16;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15120e;--fg:#f3ece0;--muted:#a89d8d;--card:#201b15;--line:#3a3227;--accent:#d4a24a;--accent-fg:#15120e;--dark:#0e0c09}}
+:root[data-theme="dark"]{--bg:#15120e;--fg:#f3ece0;--muted:#a89d8d;--card:#201b15;--line:#3a3227;--accent:#d4a24a;--accent-fg:#15120e;--dark:#0e0c09}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px}
+header{background:var(--dark);color:#f3ece0;padding:34px 0 26px;text-align:center}
+header small{letter-spacing:.2em;text-transform:uppercase;color:#d4a24a;font-size:12px}
+header h1{font-size:clamp(24px,7vw,34px);margin:8px 0 6px;line-height:1.15}
+header p{margin:0;color:#cfc5b4;font-size:15px}
+#cli{font:inherit;width:100%;max-width:340px;margin-top:14px;padding:11px;border-radius:10px;border:1px solid #5a4d3a;background:#2a241c;color:#f3ece0;text-align:center}
+.draft{background:#f9a800;color:#1f1b16;font-size:13px;text-align:center;padding:6px 10px}
+.trial{margin:16px 0 0;padding:12px 14px;border-radius:12px;background:var(--line);font-size:14px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:16px;margin-top:14px;position:relative}
+.card.on{border-color:var(--accent)}
+.card.hl::before{content:attr(data-tag);position:absolute;top:-11px;left:14px;background:var(--accent);color:var(--accent-fg);font-size:12px;font-weight:700;padding:2px 10px;border-radius:99px}
+.card h3{margin:0 0 4px;font-size:18px}
+.card .d{margin:0 0 10px;color:var(--muted);font-size:14px}
+.card ul{margin:0 0 12px;padding-left:18px;font-size:14px}
+.price{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;margin-bottom:6px}
+.price b{font-size:22px}.price span{font-size:13px;color:var(--muted)}
+.vin{font-size:13px;color:var(--muted);margin-bottom:12px}
+.sel{font:inherit;font-weight:700;width:100%;border:2px solid var(--accent);background:transparent;color:var(--fg);border-radius:12px;padding:11px;cursor:pointer}
+.card.on .sel{background:var(--accent);color:var(--accent-fg)}
+h2{font-size:17px;margin:26px 0 8px}
+.terms{font-size:14px;color:var(--muted);padding-left:18px;margin:0}
+.terms li{margin-bottom:6px}
+#bar{position:fixed;left:0;right:0;bottom:0;background:var(--dark);color:#f3ece0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:flex;gap:12px;align-items:center;justify-content:space-between;box-shadow:0 -6px 18px rgba(0,0,0,.3)}
+#bar div{font-size:13px;line-height:1.3}#bar b{font-size:17px}
+#go{background:#d4a24a;color:#15120e;font-weight:700;text-decoration:none;padding:12px 18px;border-radius:12px;white-space:nowrap}
+#go.off{opacity:.45;pointer-events:none}
+main{padding-bottom:120px}
+</style>
+</head>
+<body>
+<div class="draft" id="draft"></div>
+<header><div class="wrap">
+<small id="marca"></small>
+<h1 id="titulo">Proposta de serviços</h1>
+<p>Mais clientes de segunda a quinta, com presença forte no Google.</p>
+<input id="cli" placeholder="Nome do comércio (opcional)">
+</div></header>
+
+<main class="wrap">
+<div class="trial" id="trial"></div>
+<div id="pk"></div>
+<h2>Condições</h2>
+<ul class="terms" id="terms"></ul>
+</main>
+
+<div id="bar"><div><span id="t1">Escolha os serviços</span><br><b id="t2"></b></div><a id="go" class="off" href="#" target="_blank" rel="noopener">Tenho interesse</a></div>
+
+<script>
+/* ===== EDITE AQUI: seus dados, valores e condições ===== */
+const C={
+marca:"Sua Marca",
+whats:"5500000000000",            // DDI 55 + DDD + número
+rascunho:true,                    // mude para false quando os valores forem os definitivos
+teste:"Pacote completo com 30 dias de teste: se não gostar do resultado, cancele sem pagar a mensalidade.",
+condicoes:[
+"Cada pacote lista exatamente o que está incluído; nada é cobrado além disso sem aprovação.",
+"A verba dos anúncios é paga pelo cliente direto ao Google ou Instagram. Meu valor é só a gestão.",
+"Domínio, site e perfil do Google ficam em nome do cliente.",
+"Após o período de fidelidade, o cancelamento pode ser feito com aviso de 30 dias.",
+"Resultados dependem do mercado e da operação do negócio; não prometo número fixo de clientes. Envio relatório mensal do que foi feito e medido."
+]};
+const P=[
+{id:"g",nome:"Presença no Google",desc:"Seu comércio bem apresentado no Google Maps e na busca.",
+ itens:["Otimização completa do perfil (fotos, horários, serviços, descrição)","Posts e ofertas mensais","Resposta às avaliações","Relatório mensal"],
+ setup:300,mensal:200,vinculo:"Mensal, sem fidelidade (ou 3 meses com 10% de desconto)",excl:["c"]},
+{id:"s",nome:"Site com agendamento",desc:"Site de uma página, rápido no celular, com botão de WhatsApp e agenda.",
+ itens:["Site personalizado com a identidade do negócio","Promoções de dias de semana em destaque","Agendamento online e botão de WhatsApp","Hospedagem e manutenção básica"],
+ setup:800,mensal:50,vinculo:"Criação paga uma vez; manutenção mensal opcional",excl:["c"]},
+{id:"c",nome:"Pacote completo: Encher a semana",tag:"Mais escolhido",
+ desc:"Google + site + promoções de segunda a quinta, com acompanhamento.",
+ itens:["Tudo de Presença no Google e do Site com agendamento","Campanha de promoções para dias de semana","Código para medir clientes trazidos","Relatório mensal de resultados"],
+ setup:400,mensal:450,vinculo:"Fidelidade de 6 meses, com desconto sobre contratar separado",hl:true,excl:["g","s"]},
+{id:"a",nome:"Anúncios (Google e Instagram)",desc:"Anúncios locais para quem procura barbearia perto.",
+ itens:["Criação e gestão das campanhas","Segmentação por bairro","Ajustes semanais","Relatório mensal"],
+ setup:0,mensal:400,vinculo:"Mínimo de 3 meses. Verba de anúncios à parte, paga pelo cliente.",excl:[]},
+{id:"p",nome:"Aplicativo próprio",desc:"App exclusivo do negócio, sob medida.",
+ itens:["Escopo definido em conversa","Publicação na loja de aplicativos","Manutenção contratada à parte"],
+ orc:true,vinculo:"Sob orçamento",excl:[]}
+];
+/* ======================================================== */
+const $=id=>document.getElementById(id);
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const R=n=>n.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const sel=new Set();
+$('marca').textContent=C.marca;$('trial').textContent=C.teste;
+$('draft').textContent=C.rascunho?'RASCUNHO: valores de exemplo. Ajuste no bloco de configuração.':'';$('draft').style.display=C.rascunho?'block':'none';
+$('terms').innerHTML=C.condicoes.map(t=>`<li>${esc(t)}</li>`).join('');
+function render(){$('pk').innerHTML=P.map(p=>`<div class="card ${sel.has(p.id)?'on':''} ${p.hl?'hl':''}" ${p.tag?`data-tag="${esc(p.tag)}"`:''}>
+<h3>${esc(p.nome)}</h3><p class="d">${esc(p.desc)}</p>
+<ul>${p.itens.map(i=>`<li>${esc(i)}</li>`).join('')}</ul>
+<div class="price">${p.orc?'<b>Sob orçamento</b>':`${p.setup?`<span>Inicial</span><b>${R(p.setup)}</b>`:''}<span>${p.setup?'+':''} Mensal</span><b>${R(p.mensal)}</b>`}</div>
+<div class="vin">${esc(p.vinculo)}</div>
+<button class="sel" data-id="${p.id}">${sel.has(p.id)?'✔ Selecionado':'Escolher'}</button></div>`).join('');total()}
+function total(){let s=0,m=0;const nomes=[];P.forEach(p=>{if(!sel.has(p.id))return;nomes.push(p.nome);if(!p.orc){s+=p.setup;m+=p.mensal}});
+$('t1').textContent=nomes.length?nomes.length+' selecionado(s)':'Escolha os serviços';
+$('t2').textContent=nomes.length?(s?R(s)+' inicial + ':'')+R(m)+'/mês':'';
+const cli=$('cli').value.trim();
+const msg=`Olá! ${cli?`Sou do(a) ${cli}. `:''}Tenho interesse em: ${nomes.join(', ')}.`+(nomes.length?` Valor estimado: ${s?R(s)+' inicial + ':''}${R(m)}/mês.`:'');
+$('go').href='https://wa.me/'+C.whats+'?text='+encodeURIComponent(msg);$('go').classList.toggle('off',!nomes.length)}
+$('pk').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const id=b.dataset.id,p=P.find(x=>x.id===id);
+if(sel.has(id))sel.delete(id);else{sel.add(id);p.excl.forEach(x=>sel.delete(x))}render()});
+$('cli').addEventListener('input',e=>{const v=e.target.value.trim();$('titulo').textContent=v?'Proposta para '+v:'Proposta de serviços';total()});
+render();
+</script>
+</body>
+</html>

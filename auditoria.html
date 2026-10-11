@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mini-auditoria Google Maps</title>
+<style>
+:root{--bg:#f6f2ea;--fg:#1f1b16;--muted:#6b6258;--card:#fff;--line:#e4dccd;--accent:#b8862b;--accent-fg:#fff;--ok:#2e8b57;--no:#d64545;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15120e;--fg:#f3ece0;--muted:#a89d8d;--card:#201b15;--line:#3a3227;--accent:#d4a24a;--accent-fg:#15120e;--ok:#4fbf80;--no:#ef6b6b}}
+:root[data-theme="dark"]{--bg:#15120e;--fg:#f3ece0;--muted:#a89d8d;--card:#201b15;--line:#3a3227;--accent:#d4a24a;--accent-fg:#15120e;--ok:#4fbf80;--no:#ef6b6b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+.wrap{max-width:640px;margin:0 auto;padding:16px 16px 40px}
+h1{font-size:22px;margin:4px 0 2px}h2{font-size:16px;margin:22px 0 8px;color:var(--accent)}
+.sub{color:var(--muted);font-size:14px;margin:0 0 12px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+.chip{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:8px 12px;cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:700}
+input,textarea{font:inherit;width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);margin-top:8px}
+textarea{min-height:70px;resize:vertical}
+.score{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:10px 0;z-index:2;border-bottom:1px solid var(--line)}
+.bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+.item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.item span{flex:1;font-size:15px}
+.tri{display:flex;gap:6px}
+.tri button{font:inherit;width:42px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;font-weight:700}
+.tri button.ok.on{background:var(--ok);color:#fff;border-color:var(--ok)}
+.tri button.no.on{background:var(--no);color:#fff;border-color:var(--no)}
+.tri button.na.on{background:var(--muted);color:#fff;border-color:var(--muted)}
+.btn{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px 18px;background:var(--accent);color:var(--accent-fg);cursor:pointer;text-decoration:none;display:inline-block}
+.btn.alt{background:var(--card);color:var(--fg);border:1px solid var(--line)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+#sum{min-height:170px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>📍 Mini-auditoria do Google Maps</h1>
+<p class="sub">Pesquise o comércio no Google Maps, marque cada item: ✔ ok, ✖ falta, — não se aplica.</p>
+<div class="chips" id="list"></div>
+<input id="nome" placeholder="Nome do comércio (ex.: Barbearia do João)">
+<div class="score"><b id="pct">–</b> <span class="sub" id="lab"></span><div class="bar"><i id="fill"></i></div></div>
+<div id="chk"></div>
+<h2>Movimento nos dias de semana</h2>
+<input id="week" placeholder="Estimativa do dono (ex.: seg a qui, ~5 clientes/dia)">
+<h2>Observações</h2>
+<textarea id="notes" placeholder="O que chamou atenção, contato do dono, melhor horário para voltar..."></textarea>
+<h2>Resumo para mostrar ou enviar</h2>
+<textarea id="sum" readonly></textarea>
+<div class="row"><button class="btn" id="copy">Copiar resumo</button><a class="btn alt" id="wpp" target="_blank" rel="noopener">Enviar por WhatsApp</a><button class="btn alt" id="del">Excluir auditoria</button></div>
+</div>
+<script>
+const G=[
+{t:'Perfil',i:[['vis','Aparece no Maps ao buscar "barbearia + bairro"'],['own','Perfil reivindicado pelo dono'],['nome','Nome correto, sem palavras extras'],['cat','Categoria principal: Barbearia'],['end','Endereço e pino no lugar certo'],['hor','Horário de funcionamento preenchido'],['tel','Telefone ou WhatsApp preenchido'],['site','Site ou link de agendamento'],['desc','Descrição preenchida'],['serv','Serviços e preços listados']]},
+{t:'Fotos',i:[['logo','Logo e foto de capa'],['f10','10 ou mais fotos (fachada, interior, cortes, equipe)'],['frec','Fotos recentes (últimos 3 meses)']]},
+{t:'Avaliações',i:[['a20','20 ou mais avaliações'],['n45','Nota 4,5 ou mais'],['arec','Avaliações no último mês'],['resp','Dono responde às avaliações']]},
+{t:'Atividade',i:[['post','Postagem ou oferta no último mês'],['qa','Perguntas e respostas respondidas']]}];
+const ALL=G.flatMap(g=>g.i);const $=id=>document.getElementById(id);
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const SK='auditoria_maps_v1';let S=null;
+try{S=JSON.parse(localStorage.getItem(SK))}catch(e){}
+if(!S||!Array.isArray(S.audits)||!S.audits.length)S={audits:[],cur:null};
+const save=()=>{try{localStorage.setItem(SK,JSON.stringify(S))}catch(e){}};
+const mk=()=>({id:Date.now(),name:'',notes:'',week:'',a:{}});
+if(!S.audits.length){const a=mk();S.audits.push(a);S.cur=a.id}
+const cur=()=>S.audits.find(x=>x.id===S.cur)||S.audits[0];
+function stats(a){let ok=0,no=0;ALL.forEach(i=>{const v=a.a[i[0]];if(v==='ok')ok++;else if(v==='no')no++});return{ok,no,n:ok+no,pct:ok+no?Math.round(ok/(ok+no)*100):null}}
+function renderList(){$('list').innerHTML=S.audits.map(a=>`<button class="chip ${a.id===cur().id?'on':''}" data-id="${a.id}">${esc(a.name||'Sem nome')}</button>`).join('')+'<button class="chip" data-new="1">+ Nova</button>'}
+function renderChk(){const a=cur();$('chk').innerHTML=G.map(g=>`<h2>${g.t}</h2>`+g.i.map(i=>`<div class="item"><span>${esc(i[1])}</span><div class="tri" data-k="${i[0]}">${[['ok','✔'],['no','✖'],['na','—']].map(b=>`<button class="${b[0]} ${a.a[i[0]]===b[0]?'on':''}" data-v="${b[0]}">${b[1]}</button>`).join('')}</div></div>`).join('')).join('')}
+function upd(){const a=cur(),s=stats(a);
+$('pct').textContent=s.pct===null?'–':s.pct+'%';
+$('lab').textContent=s.pct===null?'Nenhum item avaliado':`${s.ok} de ${s.n} itens ok · `+(s.pct<50?'muita oportunidade':s.pct<80?'bom, com espaço para melhorar':'perfil bem cuidado');
+$('fill').style.width=(s.pct||0)+'%';
+const falta=ALL.filter(i=>a.a[i[0]]==='no').map(i=>'- '+i[1]);
+const txt=`Mini-auditoria Google Maps — ${a.name||'(sem nome)'}\n`+(s.pct===null?'':`Nota: ${s.pct}% (${s.ok} de ${s.n} itens ok)\n`)+
+(falta.length?`\nPontos a melhorar:\n${falta.join('\n')}\n`:'')+(a.week?`\nMovimento em dias de semana: ${a.week}\n`:'')+(a.notes?`\nObservações: ${a.notes}\n`:'');
+$('sum').value=txt;$('wpp').href='https://wa.me/?text='+encodeURIComponent(txt)}
+function load(){const a=cur();$('nome').value=a.name;$('week').value=a.week;$('notes').value=a.notes;renderList();renderChk();upd()}
+$('list').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+if(b.dataset.new){const a=mk();S.audits.push(a);S.cur=a.id}else S.cur=+b.dataset.id;save();load()});
+$('chk').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=b.parentElement.dataset.k,a=cur();
+a.a[k]=a.a[k]===b.dataset.v?undefined:b.dataset.v;save();renderChk();upd()});
+[['nome','name'],['week','week'],['notes','notes']].forEach(([id,f])=>$(id).addEventListener('input',e=>{cur()[f]=e.target.value;save();if(f==='name')renderList();upd()}));
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('sum').value);$('copy').textContent='Copiado ✔'}catch(e){$('sum').select();$('copy').textContent='Selecionado: toque em Copiar'}setTimeout(()=>$('copy').textContent='Copiar resumo',2000)};
+$('del').onclick=()=>{if(!confirm('Excluir esta auditoria?'))return;S.audits=S.audits.filter(x=>x.id!==cur().id);if(!S.audits.length)S.audits.push(mk());S.cur=S.audits[0].id;save();load()};
+load();
+</script>
+</body>
+</html>
